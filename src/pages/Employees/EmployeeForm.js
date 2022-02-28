@@ -1,4 +1,5 @@
 import { Grid } from '@material-ui/core'
+import te from 'date-fns/esm/locale/te/index.js'
 import React from 'react'
 import Controls from '../../components/controls'
 import { useForm, Form } from '../../components/useForm'
@@ -33,13 +34,46 @@ const genderitems = [
 ]
 
 export default function EmployeeForm() {
-  const { values, handleInputChange } = useForm(initialFValues)
+  const validate = (fieldValues = values) => {
+    let temp = {...errors}
+    if ('fullName' in fieldValues)
+    temp.fullName = fieldValues.fullName ? "" : "El dato es requerido."
+    if ('email' in fieldValues)
+    temp.email = (/$^|.+@.+..+/).test(fieldValues.email) ? "": "El correo no es valido."
+    if ('mobile' in fieldValues)
+    temp.mobile = fieldValues.mobile.length > 9 ? "" : "Minimo 10 numeros requeridos."
+    if ('city' in fieldValues)
+    temp.city = fieldValues.city ? "" : "El dato es requerido."
+    if ('departmenId' in fieldValues)
+    temp.departmenId = fieldValues.departmenId.length != 0 ? "" : "El dato es requerido."
+    setErrors({
+      ...temp
+    })
+    if(fieldValues == values)
+    return Object.values(temp).every(x => x == "")
+  }
 
+  const {
+    values,
+    errors,
+    setErrors,
+    handleInputChange,
+    resetForm
+  } = useForm(initialFValues, true, validate)
 
   if (!values) return null
 
+
+  const handleSubmit = e => {
+    e.preventDefault()
+    if (validate()) { 
+      employeesServices.insertEmployee(values)
+      resetForm()
+    }
+  }
+
   return (
-    <Form>
+    <Form onSubmit={handleSubmit}>
       <Grid container>
         <Grid item xs={6}>
           <Controls.Input
@@ -47,7 +81,7 @@ export default function EmployeeForm() {
             label="Full Name"
             value={values.fullName}
             onChange={handleInputChange}
-
+            error={errors.fullName}
           />
           <Controls.Input
             label="Email"
@@ -55,7 +89,7 @@ export default function EmployeeForm() {
             name="email"
             value={values.email}
             onChange={handleInputChange}
-
+            error={errors.email}
           />
           <Controls.Input
             label="mobile"
@@ -63,6 +97,7 @@ export default function EmployeeForm() {
             name="mobile"
             value={values.mobile}
             onChange={handleInputChange}
+            error={errors.mobile}
           />
           <Controls.Input
             label="city"
@@ -70,6 +105,7 @@ export default function EmployeeForm() {
             name="city"
             value={values.city}
             onChange={handleInputChange}
+            error={errors.city}
           />
         </Grid>
         <Grid item xs={6}>
@@ -86,6 +122,7 @@ export default function EmployeeForm() {
             label="Department"
             value={values.departmenId}
             onChange={handleInputChange}
+            error={errors.departmenId}
             options={employeesServices.getDepartmentCollection()}
           />
           <Controls.DatePicker
@@ -105,10 +142,11 @@ export default function EmployeeForm() {
               text="Submit"
               type="submit"
             />
-             <Controls.Button
+            <Controls.Button
               text="Reset"
               type="submit"
               color="default"
+              onClick={resetForm}
             />
           </div>
           <br />
