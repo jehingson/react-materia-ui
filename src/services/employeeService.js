@@ -28,5 +28,10 @@ export function generateEmployeeId() {
 export function getAllEmployees(){
     if(localStorage.getItem(KEYS.employees)== null)
         localStorage.setItem(KEYS.employees, JSON.stringify([]))
-    return JSON.parse(localStorage.getItem(KEYS.employees))
+    let employees = JSON.parse(localStorage.getItem(KEYS.employees))
+    let departments = getDepartmentCollection();
+    employees.forEach(item => {
+        item.department = departments.filter(it => it.id === item.departmenId)[0].title  
+    })
+    return employees
 }
