@@ -1,6 +1,5 @@
 import { Grid } from '@material-ui/core'
-import te from 'date-fns/esm/locale/te/index.js'
-import React from 'react'
+import React, { useEffect } from 'react'
 import Controls from '../../components/controls'
 import { useForm, Form } from '../../components/useForm'
 import * as employeesServices from '../../services/employeeService'
@@ -33,44 +32,54 @@ const genderitems = [
   }
 ]
 
-export default function EmployeeForm() {
+export default function EmployeeForm(props) {
+  const { addOrEdit, recordForEdit } = props
+
   const validate = (fieldValues = values) => {
-    let temp = {...errors}
+    let temp = { ...errors }
     if ('fullName' in fieldValues)
-    temp.fullName = fieldValues.fullName ? "" : "El dato es requerido."
+      temp.fullName = fieldValues.fullName ? "" : "El dato es requerido."
     if ('email' in fieldValues)
-    temp.email = (/$^|.+@.+..+/).test(fieldValues.email) ? "": "El correo no es valido."
+      temp.email = (/$^|.+@.+..+/).test(fieldValues.email) ? "" : "El correo no es valido."
     if ('mobile' in fieldValues)
-    temp.mobile = fieldValues.mobile.length > 9 ? "" : "Minimo 10 numeros requeridos."
+      temp.mobile = fieldValues.mobile.length > 9 ? "" : "Minimo 10 numeros requeridos."
     if ('city' in fieldValues)
-    temp.city = fieldValues.city ? "" : "El dato es requerido."
+      temp.city = fieldValues.city ? "" : "El dato es requerido."
     if ('departmenId' in fieldValues)
-    temp.departmenId = fieldValues.departmenId.length != 0 ? "" : "El dato es requerido."
+      temp.departmenId = fieldValues.departmenId.length != 0 ? "" : "El dato es requerido."
     setErrors({
       ...temp
     })
-    if(fieldValues == values)
-    return Object.values(temp).every(x => x == "")
+    if (fieldValues == values)
+      return Object.values(temp).every(x => x == "")
   }
 
   const {
     values,
+    setValues,
     errors,
     setErrors,
     handleInputChange,
     resetForm
   } = useForm(initialFValues, true, validate)
 
-  if (!values) return null
+ 
 
 
   const handleSubmit = e => {
     e.preventDefault()
-    if (validate()) { 
-      employeesServices.insertEmployee(values)
-      resetForm()
+    if (validate()) {
+      addOrEdit(values, resetForm)
     }
   }
+
+  useEffect(() => {
+    if (recordForEdit != null) setValues({
+      ...recordForEdit
+    })
+  }, [recordForEdit])
+
+  if (!values) return null
 
   return (
     <Form onSubmit={handleSubmit}>
